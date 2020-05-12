@@ -1,0 +1,3 @@
+- src: pogosoftware.self_signed_cert
+- src: pogosoftware.lvm
+- src: pogosoftware.nexus3_oss

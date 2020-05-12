@@ -1,0 +1,107 @@
+- hosts: nexus
+  become: yes
+  roles:
+    - pogosoftware.self_signed_cert
+    - pogosoftware.lvm
+    - pogosoftware.nexus3_oss
+  vars:
+    self_signed_cert_dir: /vagrant/certs/
+
+    self_signed_cert_ca_certs:
+      - name: ca
+        cn: Nexus 3 Internal CA
+        key_algo: rsa
+        key_size: 2048
+        country: PL
+        location: Wrocław
+        organisation: Pogosoftware
+        organisation_unit: IT
+        state: dolnoslaskie
+        trust_ca_cert: true
+
+    self_signed_cert_certs:
+      - name: nexus.server.internal
+        profile: server
+        ca_name: ca
+        export_to_pfx: false
+        cn: Nexus 3
+        hosts:
+          - nexus.internal
+          - 192.168.192.100
+        key_algo: rsa
+        key_size: 2048
+        country: PL
+        location: Wrocław
+        organisation: Pogosoftware
+        organisation_unit: IT
+        state: dolnoslaskie
+      - name: nexus.client.internal
+        profile: client
+        ca_name: ca
+        export_to_pfx: true
+        cn: Nexus 3
+        hosts:
+          - nexus.internal
+          - 192.168.192.100
+        key_algo: rsa
+        key_size: 2048
+        country: PL
+        location: Wrocław
+        organisation: Pogosoftware
+        organisation_unit: IT
+        state: dolnoslaskie
+
+    vgs:
+      - vg: data
+        pvs: /dev/sdb
+        lvs:
+          - lv: nexus
+            size: +100%VG
+            path: /var/lib/nexus
+
+    nexus_data_dir: "{{ vgs[0].lvs[0].path }}"
+
+    nexus_admin_password: admin
+    nexus_anonymous_access: true
+    
+    httpd_setup_enable: true
+    httpd_server_name: nexus.internal
+    httpd_copy_ssl_files: true
+    httpd_ssl_certificate_file: "{{ self_signed_cert_dir }}nexus.server.internal.pem"
+    httpd_ssl_certificate_key_file: "{{ self_signed_cert_dir }}nexus.server.internal-key.pem"
+
+    nexus_os_group: nexus
+    nexus_os_user: nexus
+
+    nexus_delete_default_repos: true
+    nexus_delete_default_blobstore: true
+    nexus_blobstores:
+    - name: apt
+      type: file
+      path: "{{ nexus_data_dir }}/blobs/apt"
+    - name: binaries
+      type: file
+      path: "{{ nexus_data_dir }}/blobs/binaries"
+
+    nexus_blob_names:
+      apt:
+        blob: apt
+      raw:
+        blob: binaries
+
+    nexus_config_apt: true
+    nexus_repos_apt_proxy: 
+    - name: ubuntu-archive
+      remote_url: http://archive.ubuntu.com/ubuntu/
+      distribution: bionic
+      flat: false
+    - name: ubuntu-security
+      remote_url: http://security.ubuntu.com/ubuntu
+      distribution: bionic
+      flat: false
+
+    nexus_config_raw: true
+    nexus_repos_raw_hosted:
+    - name: binaries
+      version_policy: release
+      write_policy: allow
