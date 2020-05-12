@@ -83,25 +83,22 @@
       type: file
       path: "{{ nexus_data_dir }}/blobs/binaries"
 
-    nexus_blob_names:
-      apt:
-        blob: apt
-      raw:
-        blob: binaries
-
-    nexus_config_apt: true
-    nexus_repos_apt_proxy: 
-    - name: ubuntu-archive
-      remote_url: http://archive.ubuntu.com/ubuntu/
-      distribution: bionic
-      flat: false
-    - name: ubuntu-security
-      remote_url: http://security.ubuntu.com/ubuntu
-      distribution: bionic
-      flat: false
-
     nexus_config_raw: true
+    nexus_repos_raw_group: []
+    nexus_repos_raw_hosted: []
+    _nexus_repos_raw_defaults:
+      blob_store: ''
+
+    nexus_repos_raw_proxy:
+    - name: ubuntu-archive
+      remote_url: 'http://archive.ubuntu.com/ubuntu/'
+      blob_store: apt
+    - name: ubuntu-security
+      remote_url: 'http://security.ubuntu.com/ubuntu/'
+      blob_store: apt
+
     nexus_repos_raw_hosted:
     - name: binaries
       version_policy: release
       write_policy: allow
+      blob_store: binaries
